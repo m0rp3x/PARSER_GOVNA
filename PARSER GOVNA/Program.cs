@@ -11,7 +11,7 @@ class Program
     static async System.Threading.Tasks.Task Main(string[] args)
     {
         // Create a new Excel package
-        using (var package = new ExcelPackage())
+        using (var package = new ExcelPackage(@"C:\Users\koval\RiderProjects\PARSER GOVNA\PARSER GOVNA\Penis.xlsx"))
         {
             var workbook = package.Workbook;
             var worksheet = workbook.Worksheets.Add("Компании");
@@ -56,9 +56,17 @@ class Program
                     HtmlNode addressNode = doc.DocumentNode.SelectSingleNode("//td[contains(text(), 'Адрес')]/following-sibling::td/p");
                     string address = addressNode != null ? addressNode.InnerText.Trim() : "Адрес не найден";
 
-                    string phonePattern = @"tel:(\+?[0-9() -]+)";
-                    Match phoneMatch = Regex.Match(html, phonePattern);
-                    string phone = phoneMatch.Success ? phoneMatch.Groups[1].Value : "Телефон не найден";
+                    string phonePattern = @"tel:([\d\s()+-]+)";
+                    MatchCollection phoneMatches = Regex.Matches(html, phonePattern);
+
+                    List<string> phones = new List<string>();
+
+                    foreach (Match match in phoneMatches)
+                    {
+                        phones.Add(match.Groups[1].Value);
+                    }
+
+                    string phone = phones.Count > 0 ? string.Join(", ", phones) : "Телефон не найден";
 
                     string emailPattern = @"mailto:([\w\.-]+@[\w\.-]+)";
                     Match emailMatch = Regex.Match(html, emailPattern);
@@ -88,8 +96,8 @@ class Program
             }
 
             // Save the Excel file
-            FileInfo excelFile = new FileInfo("companies.xlsx");
-            package.SaveAs(excelFile);
+            FileInfo excelFile = new FileInfo("Penis.xlsx");
+            await package.SaveAsAsync(excelFile);
         }
     }
 }

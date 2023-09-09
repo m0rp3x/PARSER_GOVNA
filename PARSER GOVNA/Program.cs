@@ -53,9 +53,8 @@ class Program
                     HtmlNode contact_info = doc.DocumentNode.SelectSingleNode("//div[@id='contact-list']");
 
                     // Extract address information using regular expression
-                    HtmlNode addressNode = contact_info.SelectSingleNode("td[contains(text(), 'Адрес')]/following-sibling::td/p");
+                    HtmlNode addressNode = doc.DocumentNode.SelectSingleNode("//td[contains(text(), 'Адрес')]/following-sibling::td/p");
                     string address = addressNode != null ? addressNode.InnerText.Trim() : "Адрес не найден";
-
 
                     string phonePattern = @"tel:(\+?[0-9() -]+)";
                     Match phoneMatch = Regex.Match(html, phonePattern);

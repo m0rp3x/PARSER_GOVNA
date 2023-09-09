@@ -52,18 +52,25 @@ class Program
                     // Extract contact information
                     HtmlNode contact_info = doc.DocumentNode.SelectSingleNode("//div[@id='contact-list']");
 
-                    string address = contact_info.SelectSingleNode("td[text()='Адрес']")?
-                        .NextSibling?.InnerText.Trim() ?? "Адрес не найден";
+                    // Extract address information using regular expression
+                    HtmlNode addressNode = contact_info.SelectSingleNode("td[contains(text(), 'Адрес')]/following-sibling::td/p");
+                    string address = addressNode != null ? addressNode.InnerText.Trim() : "Адрес не найден";
+
 
                     string phonePattern = @"tel:(\+?[0-9() -]+)";
                     Match phoneMatch = Regex.Match(html, phonePattern);
                     string phone = phoneMatch.Success ? phoneMatch.Groups[1].Value : "Телефон не найден";
 
-                    string email = contact_info.SelectSingleNode("td[text()='Почта']")?
-                        .NextSibling?.SelectSingleNode("a")?.GetAttributeValue("href", "").Replace("mailto:", "").Trim() ?? "Почта не найдена";
+                    string emailPattern = @"mailto:([\w\.-]+@[\w\.-]+)";
+                    Match emailMatch = Regex.Match(html, emailPattern);
 
-                    string website = contact_info.SelectSingleNode("td[text()='Сайт']")?
-                        .NextSibling?.SelectSingleNode("a")?.GetAttributeValue("href", "").Trim() ?? "Сайт не найден";
+                    string email = emailMatch.Success ? emailMatch.Groups[1].Value : "Почта не найдена";
+                    // Extract website information using regular expression
+                    string websitePattern = @"<a href=""(https?://[^""]+)""";
+                    Match websiteMatch = Regex.Match(html, websitePattern);
+
+                    string website = websiteMatch.Success ? websiteMatch.Groups[1].Value : "Сайт не найден";
+
 
                     // Create company info array
                     string[] company_info = { company_name, description, address, phone, email, website };
@@ -72,7 +79,7 @@ class Program
                     worksheet.Cells[worksheet.Dimension.End.Row + 1, 1].LoadFromArrays(new List<string[]>() { company_info });
 
                     // Output debug information
-                    Console.WriteLine($"Ссылка: {link}");
+                    Console.WriteLine($"Ссылка: {baseUrl}{link}");
                     Console.WriteLine($"Добавлена компания: {company_name}");
                     Console.WriteLine($"Адрес: {address}");
                     Console.WriteLine($"Телефон: {phone}");
